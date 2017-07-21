@@ -1,5 +1,6 @@
 const request = new XMLHttpRequest();
 const booksWraper = document.getElementById('content');
+
 let booksList;
 request.open('GET', 'https://netology-fbb-store-api.herokuapp.com/book/');
 request.send();
@@ -19,19 +20,20 @@ function onRequestError(event) {
 }
 
 function createBook(book) {
-    return `<li 
-                data-title="${book.title}" 
-                data-author="${book.author.name}" 
-                data-info="${book.info}" 
-                data-price="${book.price}">
-                <img src="${book.cover.small}">
-           </li>`
+    let listItem = document.createElement('li');
+    listItem.dataset.title = book.title;
+    listItem.dataset.author = book.author.name;
+    listItem.dataset.info = book.info;
+    listItem.dataset.price = book.price;
+    listItem.innerHTML = `<img src="${book.cover.small}">`;
+
+    return listItem;
+
 }
 
 function fillBooksWraper() {
-    let result = "";
     for (let book of booksList) {
-        result += createBook(book);
+        booksWraper.appendChild(createBook(book));
     }
-    booksWraper.innerHTML = result;
+    booksWraper.firstChild.nextElementSibling.remove();
 }
