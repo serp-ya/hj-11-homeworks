@@ -32,8 +32,6 @@ function createBook(book) {
 }
 
 function fillBooksWraper() {
-    for (let book of booksList) {
-        booksWraper.appendChild(createBook(book));
-    }
-    booksWraper.firstChild.nextElementSibling.remove();
+  booksList.forEach(book => booksWraper.appendChild(createBook(book)));
+  booksWraper.firstElementChild.remove();
 }
