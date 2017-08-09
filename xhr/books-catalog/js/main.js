@@ -1,12 +1,12 @@
 const request = new XMLHttpRequest();
-const booksWraper = document.getElementById('content');
+const booksWrapper = document.getElementById('content');
 
 let booksList;
 request.open('GET', 'https://netology-fbb-store-api.herokuapp.com/book/');
 request.send();
 request.addEventListener('load', getBooksList);
 request.addEventListener('error', onRequestError);
-request.addEventListener('loadend', fillBooksWraper);
+request.addEventListener('loadend', fillBooksWrapper);
 
 function getBooksList(event) {
     if (event.target.status !== 200) {
@@ -19,19 +19,10 @@ function onRequestError(event) {
     console.error("Can't get request, network error");
 }
 
-function createBook(book) {
-    let listItem = document.createElement('li');
-    listItem.dataset.title = book.title;
-    listItem.dataset.author = book.author.name;
-    listItem.dataset.info = book.info;
-    listItem.dataset.price = book.price;
-    listItem.innerHTML = `<img src="${book.cover.small}">`;
-
-    return listItem;
-
-}
-
-function fillBooksWraper() {
-  booksList.forEach(book => booksWraper.appendChild(createBook(book)));
-  booksWraper.firstElementChild.remove();
+function fillBooksWrapper() {
+  booksWrapper.innerHTML = booksList.reduce(function(result, book) {
+    return result += `<li data-title="${book.title}" data-author="${book.author.name}" data-info="${book.info}" data-price="${book.price}">
+      <img src ="${book.cover.small}">
+    </li>`;
+  }, "");
 }
