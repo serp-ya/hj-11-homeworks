@@ -1,10 +1,15 @@
 'use strict';
 const clearPortFromURLPattern = /:{1}\d+/;
 
-function addScript(src) {
-  const elem = document.createElement("script");
-  elem.src = src;
-  document.body.appendChild(elem);
+function addScriptWithPromises(url, callbackName) {
+  return new Promise((done, fail) => {
+    let callbackUrl = `${url}?callback=${callbackName}`;
+    window[callbackName]= done;
+
+    const script = document.createElement('script');
+    script.src = callbackUrl;
+    document.body.appendChild(script);
+});
 }
 
 function fillWidget(data) {
@@ -19,4 +24,4 @@ function fillWidget(data) {
   })
 }
 
-addScript('https://neto-api.herokuapp.com/twitter/jsonp?callback=fillWidget');
+addScriptWithPromises('https://neto-api.herokuapp.com/twitter/jsonp', 'whatever').then(fillWidget);
