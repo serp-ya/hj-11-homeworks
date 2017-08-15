@@ -1,9 +1,9 @@
 'use strict';
 const clearPortFromURLPattern = /:{1}\d+/;
-const callbackSources = [
-  'https://neto-api.herokuapp.com/food/42?callback=callbackRegistry.loadRecipe',
-  'https://neto-api.herokuapp.com/food/42/rating?callback=callbackRegistry.loadRating',
-  'https://neto-api.herokuapp.com/food/42/consumers?callback=callbackRegistry.loadConsumers'
+const callbackSourcesForPromises = [
+  'https://neto-api.herokuapp.com/food/42',
+  'https://neto-api.herokuapp.com/food/42/rating',
+  'https://neto-api.herokuapp.com/food/42/consumers'
 ];
 const callbackRegistry = {
   'loadRecipe': function (data) {
@@ -19,7 +19,7 @@ const callbackRegistry = {
   },
 
   'loadConsumers': function (data) {
-    document.querySelector(`[data-consumers]`).innerHTML = data.list.reduce(function (result, consumer) {
+    document.querySelector(`[data-consumers]`).innerHTML = data.consumers.reduce(function (result, consumer) {
       return result += `<img src="${consumer.pic.replace(clearPortFromURLPattern, '')}" title="${consumer.name}">`;
     }, '');
 
@@ -29,12 +29,20 @@ const callbackRegistry = {
   }
 };
 
-function addScript(srcArr) {
-  srcArr.forEach((link) => {
-    const elem = document.createElement("script");
-    elem.src = link;
-    document.body.appendChild(elem);
-  })
-}
+addScriptWithPromises(callbackSourcesForPromises[0], 'whatever')
+  .then(callbackRegistry.loadRecipe)
+  .then(() => addScriptWithPromises(callbackSourcesForPromises[1], 'whatever'))
+.then(callbackRegistry.loadRating)
+  .then(() => addScriptWithPromises(callbackSourcesForPromises[2], 'whatever'))
+.then(callbackRegistry.loadConsumers);
 
-addScript(callbackSources);
+function addScriptWithPromises(url, callbackName) {
+  return new Promise((done, fail) => {
+      let callbackUrl = `${url}?callback=${callbackName}`;
+  window[callbackName]= done;
+
+  const script = document.createElement('script');
+  script.src = callbackUrl;
+  document.body.appendChild(script);
+});
+}
