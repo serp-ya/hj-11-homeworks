@@ -8,6 +8,7 @@ const cartForm = document.getElementById('AddToCartForm');
 colorSwatch.addEventListener('click', saveState);
 sizeSwatch.addEventListener('click', saveState);
 addToCartBtn.addEventListener('click', sendGood);
+window.addEventListener('load', checkModifiers);
 
 function makeColorSnippet(colorName, available, description, selected = false) {
   return `
@@ -59,20 +60,40 @@ function makeCartSnippet(count, price) {
   `;
 }
 
+function checkModifiers() {
+  function takeFirstAvailableModifier(fieldInStorage, itemsContainer) {
+    if (!fieldInStorage) {
+      let items = itemsContainer.querySelectorAll('input');
+      let item = Array.from(items).find(el => !el.disabled);
+      item.checked = true;
+      fieldInStorage = item.id;
+    }
+  }
+  takeFirstAvailableModifier(localStorage.selectColorId, colorSwatch);
+  takeFirstAvailableModifier(localStorage.selectSizeId, sizeSwatch);
+}
+
+function checkResponseCode(response) {
+  if (!(200 <= response.status) && !(response.status < 300)) {
+    throw new Error(response.statusText);
+  }
+}
+
+function sendRequest(url, data) {
+  return fetch(url, {
+    body: data,
+    method: 'POST'
+  })
+}
+
 Promise.all([
   fetch('https://neto-api.herokuapp.com/cart/colors'),
   fetch('https://neto-api.herokuapp.com/cart/sizes'),
   fetch('https://neto-api.herokuapp.com/cart')
 ]).then(([colors, sizes, cart]) => {
-  if (!(200 <= colors.status) && !(colors.status < 300)) {
-    throw new Error(colors.statusText);
-
-  } else if (!(200 <= sizes.status) && !(sizes.status < 300)) {
-    throw new Error(sizes.statusText);
-
-  } else if (!(200 <= cart.status) && !(cart.status < 300)) {
-    throw new Error(cart.statusText);
-  }
+  checkResponseCode(colors);
+  checkResponseCode(sizes);
+  checkResponseCode(cart);
 
   Promise.all([colors.json(), sizes.json(), cart.json()])
     .then(([colors, sizes, cart]) => {
@@ -87,12 +108,6 @@ Promise.all([
       updateCart(cart);
 
     }).then(() => {
-      let removeBtns = quickCart.querySelectorAll('.remove');
-
-      for (const btn of removeBtns) {
-        btn.addEventListener('click', removeGood);
-      }
-
       setStates();
     });
 });
@@ -111,6 +126,11 @@ function updateCart(data) {
   }, 0);
 
   quickCart.innerHTML += makeCartSnippet(totalCount, totalPrice);
+
+  let removeBtns = quickCart.querySelectorAll('.remove');
+  for (const btn of removeBtns) {
+    btn.addEventListener('click', removeGood);
+  }
 }
 
 function saveState(event) {
@@ -130,30 +150,15 @@ function setStates() {
   }
 }
 
-function makeRequest(url, data) {
-  return fetch(url, {
-    body: JSON.stringify(data),
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  })
-}
-
 function sendGood(event) {
   event.preventDefault();
+
   let formData = new FormData(cartForm);
-  let processedData = {productId: cartForm.dataset.productId};
+  formData.append('productId', cartForm.dataset.productId);
 
-  for (const [key, value] of formData) {
-    processedData[key] = value;
-  }
-
-  makeRequest('https://neto-api.herokuapp.com/cart', processedData)
+  sendRequest('https://neto-api.herokuapp.com/cart', formData)
     .then(response => {
-      if (!(200 <= response.status) && !(response.status < 300)) {
-        throw new Error(response.statusText);
-      }
+      checkResponseCode(response);
       return response.json();
 
     }).then((data) => {
@@ -162,13 +167,11 @@ function sendGood(event) {
       }
 
       return fetch('https://neto-api.herokuapp.com/cart').then((response) => {
-        if (!(200 <= response.status) && !(response.status < 300)) {
-          throw new Error(response.statusText);
-        }
-        response.json();
+        checkResponseCode(response);
+        return response.json();
 
         }).then((data) => {
-        updateCart(data);
+          updateCart(data);
         });
 
     }).catch((error) => {
@@ -177,11 +180,14 @@ function sendGood(event) {
 }
 
 function removeGood(event) {
-  makeRequest('https://neto-api.herokuapp.com/cart/remove', event.target.dataset.id).then((response) => {
-    if (!(200 <= response.status) && !(response.status < 300)) {
-      throw new Error(response.statusText);
-    }
-    return response.json();
+  let formData = new FormData(cartForm);
+  formData.append('productId', event.target.dataset.id);
+
+  sendRequest('https://neto-api.herokuapp.com/cart/remove', formData)
+    .then((response) => {
+      checkResponseCode(response);
+      return response.json();
+
   }).then((data) => {
     if (data.error) {
       throw new Error(data.message);
