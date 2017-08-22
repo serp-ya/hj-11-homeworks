@@ -59,9 +59,9 @@ function drawCurve(event) {
 }
 
 function circle(point) {
-  const pointArr = [point.x, point.y];
+  const pointCoords = [point.x, point.y];
   canvasContext.beginPath();
-  canvasContext.arc(...pointArr, point.brushRadius / 2, 0, 2 * Math.PI);
+  canvasContext.arc(...pointCoords, point.brushRadius / 2, 0, 2 * Math.PI);
   canvasContext.fillStyle = `hsl(${point.hue}, 100%, 50%)`;
   canvasContext.fill();
 }
