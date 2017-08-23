@@ -21,44 +21,42 @@ let figures = [];
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-class Circle {
+class Figure {
   constructor(x, y) {
     this.x = x;
     this.y = y;
     this.size = getRandom(0.1, 0.6);
     this.outline = 5 * this.size;
-    this.radius = 12 * this.size;
-    this.vector = 1;
-    this.speed = getRandom(1, 5);
-    this.motion = timeFunctions[Math.round(Math.random())];
+    this.motion = timeFunctions[randomInteger(0, timeFunctions.length - 1)];
   }
 }
 
-class Cross {
+class Circle extends Figure {
   constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.size = getRandom(0.1, 0.6);
-    this.outline = 5 * this.size;
+    super(x, y);
+    this.radius = 12 * this.size;
+  }
+}
+
+class Cross extends Figure {
+  constructor(x, y) {
+    super(x, y);
     this.side = 20 * this.size;
-    this.angle = Math.round(getRandom(0, 360));
+    this.angle = getRandom(0, 360);
     this.rotationSpeed = getRandom(-0.2, 0.2);
-    this.vector = 1;
-    this.speed = getRandom(1, 5);
-    this.motion = timeFunctions[Math.round(Math.random())];
   }
 }
 
 function createFigures(amountFrom, amountTo) {
-  for (let i = 0; i < getRandom(amountFrom, amountTo); i++) {
+  for (let i = 0; i < randomInteger(amountFrom, amountTo); i++) {
     figures.push(
-      new Cross(Math.round(getRandom(0, canvas.width)), Math.round(getRandom(0, canvas.height)))
+      new Cross(randomInteger(0, canvas.width), randomInteger(0, canvas.height))
     );
   }
 
-  for (let i = 0; i < getRandom(amountFrom, amountTo); i++) {
+  for (let i = 0; i < randomInteger(amountFrom, amountTo); i++) {
     figures.push(
-      new Circle(Math.round(getRandom(0, canvas.width)), Math.round(getRandom(0, canvas.height)))
+      new Circle(randomInteger(0, canvas.width), randomInteger(0, canvas.height))
     );
   }
 }
@@ -66,9 +64,9 @@ function createFigures(amountFrom, amountTo) {
 function drawCross(cross) {
   const rad = cross.angle * Math.PI / 180;
   const halfSide = cross.side / 2;
-  let {x, y} = cross.motion(cross.x, cross.y, (Date.now() * cross.vector) * cross.speed);
+  let {x, y} = cross.motion(cross.x, cross.y, Date.now());
 
-  canvasContext.translate(cross.x, cross.y);
+  canvasContext.translate(x, y);
   canvasContext.rotate(rad);
 
   canvasContext.lineWidth = cross.outline;
@@ -84,46 +82,27 @@ function drawCross(cross) {
   canvasContext.stroke();
 
   canvasContext.rotate(-rad);
-  canvasContext.translate(-cross.x, -cross.y);
+  canvasContext.translate(-x, -y);
 
-  if (x <= 0 || x >= canvas.width) {
-    x = -x;
-    cross.vector *= -1;
-  }
-
-  if (y <= 0 || y >= canvas.width) {
-    y = -y;
-    cross.vector *= -1;
-  }
-
-  [cross.x, cross.y] = [x, y];
   cross.angle += cross.rotationSpeed;
 }
 
 function drawCircle(circle) {
-  let {x, y} = circle.motion(circle.x, circle.y, (Date.now() * circle.vector) * circle.speed);
+  let {x, y} = circle.motion(circle.x, circle.y, Date.now());
 
   canvasContext.lineWidth = circle.outline;
   canvasContext.strokeStyle = '#ffffff';
   canvasContext.beginPath();
-  canvasContext.arc(circle.x, circle.y, circle.radius, 0, 2*Math.PI, false);
+  canvasContext.arc(x, y, circle.radius, 0, 2*Math.PI, false);
   canvasContext.stroke();
-
-  if (x <= 0 || x >= canvas.width) {
-    x = -x;
-    circle.vector *= -1;
-  }
-
-  if (y <= 0 || y >= canvas.width) {
-    y = -y;
-    circle.vector *= -1;
-  }
-
-  [circle.x, circle.y] = [x, y];
 }
 
 function getRandom(min, max) {
   return Math.random() * (max - min) + min;
+}
+
+function randomInteger(min, max) {
+  return Math.round(getRandom(min, max));
 }
 
 function tick() {
