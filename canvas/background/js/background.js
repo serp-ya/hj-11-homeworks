@@ -119,4 +119,4 @@ function tick() {
 }
 
 createFigures(80, 150);
-setInterval(tick, 50);
+setInterval(tick, 1000 / 20);
