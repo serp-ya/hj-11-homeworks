@@ -183,7 +183,7 @@ function createSeatRow(labels) {
 
           halfCycleFlag = true;
         } else {
-          for (let i = halfLabelsCount; i < labelsList.length - 1; i++) {
+          for (let i = halfLabelsCount + 1; i < labelsList.length; i++) {
             createAndPushSeatPlace(i);
           }
         }
@@ -200,8 +200,10 @@ function createSeatRow(labels) {
           for (let i = 0; i <= halfLabelsCount; i++) {
             createAndPushSeatPlace(i);
           }
+
+          halfCycleFlag = true;
         } else {
-          for (let i = halfLabelsCount; i < labelsList.length - 1; i++) {
+          for (let i = halfLabelsCount + 1; i < labelsList.length; i++) {
             createAndPushSeatPlace(i);
           }
           seatsFragment.appendChild(emptySeat);
